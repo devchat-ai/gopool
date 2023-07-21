@@ -4,18 +4,19 @@ type Worker struct {
     TaskQueue chan Task
 }
 
-func newWorker(taskQueue chan Task) *Worker {
+func newWorker() *Worker {
     return &Worker{
-        TaskQueue: taskQueue,
+        TaskQueue: make(chan Task, 1),
     }
 }
 
-func (w *Worker) start() {
+func (w *Worker) start(pool *GoPool, workerIndex int) {
     go func() {
         for task := range w.TaskQueue {
             if task != nil {
                 task()
             }
+            pool.pushWorker(workerIndex)
         }
     }()
 }

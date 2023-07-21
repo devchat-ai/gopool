@@ -3,32 +3,43 @@ package gopool
 type Task func()
 
 type GoPool struct {
-    TaskQueue  chan Task
-    MaxWorkers int
     Workers    []*Worker
+    MaxWorkers int
+    workerStack []int
 }
 
 func NewGoPool(maxWorkers int) *GoPool {
     pool := &GoPool{
-        TaskQueue:  make(chan Task),
         MaxWorkers: maxWorkers,
         Workers:    make([]*Worker, maxWorkers),
+        workerStack: make([]int, maxWorkers),
     }
     for i := 0; i < maxWorkers; i++ {
-        worker := newWorker(pool.TaskQueue)
+        worker := newWorker()
         pool.Workers[i] = worker
-        worker.start()
+        pool.workerStack[i] = i
+        worker.start(pool, i)
     }
     return pool
 }
 
 func (p *GoPool) AddTask(task Task) {
-    p.TaskQueue <- task
+    workerIndex := p.popWorker()
+    p.Workers[workerIndex].TaskQueue <- task
 }
 
 func (p *GoPool) Release() {
-    close(p.TaskQueue)
     for _, worker := range p.Workers {
-        <-worker.TaskQueue
+        close(worker.TaskQueue)
     }
+}
+
+func (p *GoPool) popWorker() int {
+    workerIndex := p.workerStack[len(p.workerStack)-1]
+    p.workerStack = p.workerStack[:len(p.workerStack)-1]
+    return workerIndex
+}
+
+func (p *GoPool) pushWorker(workerIndex int) {
+    p.workerStack = append(p.workerStack, workerIndex)
 }
