@@ -11,18 +11,33 @@ type GoPool struct {
     MaxWorkers int
     workerStack []int
     taskQueue chan Task
-    mutex sync.Mutex
+    lock sync.Locker
     cond *sync.Cond
 }
 
-func NewGoPool(maxWorkers int) *GoPool {
+type Option func(*GoPool)
+
+func WithLock(lock sync.Locker) Option {
+    return func(p *GoPool) {
+        p.lock = lock
+        p.cond = sync.NewCond(p.lock)
+    }
+}
+
+func NewGoPool(maxWorkers int, opts ...Option) *GoPool {
     pool := &GoPool{
         MaxWorkers: maxWorkers,
         Workers:    make([]*Worker, maxWorkers),
         workerStack: make([]int, maxWorkers),
         taskQueue: make(chan Task, 1e6),
+        lock: new(sync.Mutex),
     }
-    pool.cond = sync.NewCond(&pool.mutex)
+    for _, opt := range opts {
+        opt(pool)
+    }
+    if pool.cond == nil {
+        pool.cond = sync.NewCond(pool.lock)
+    }
     for i := 0; i < maxWorkers; i++ {
         worker := newWorker()
         pool.Workers[i] = worker
@@ -52,17 +67,17 @@ func (p *GoPool) Release() {
 }
 
 func (p *GoPool) popWorker() int {
-    p.mutex.Lock()
+    p.lock.Lock()
     workerIndex := p.workerStack[len(p.workerStack)-1]
     p.workerStack = p.workerStack[:len(p.workerStack)-1]
-    p.mutex.Unlock()
+    p.lock.Unlock()
     return workerIndex
 }
 
 func (p *GoPool) pushWorker(workerIndex int) {
-    p.mutex.Lock()
+    p.lock.Lock()
     p.workerStack = append(p.workerStack, workerIndex)
-    p.mutex.Unlock()
+    p.lock.Unlock()
     p.cond.Signal()
 }
 
