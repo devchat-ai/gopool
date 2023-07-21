@@ -9,17 +9,26 @@ type GoPool struct {
 }
 
 func NewGoPool(maxWorkers int) *GoPool {
-    return &GoPool{
+    pool := &GoPool{
         TaskQueue:  make(chan Task),
         MaxWorkers: maxWorkers,
         Workers:    make([]*Worker, maxWorkers),
     }
+    for i := 0; i < maxWorkers; i++ {
+        worker := newWorker(pool.TaskQueue)
+        pool.Workers[i] = worker
+        worker.start()
+    }
+    return pool
 }
 
 func (p *GoPool) AddTask(task Task) {
-    // Implementation here
+    p.TaskQueue <- task
 }
 
 func (p *GoPool) Release() {
-    // Implementation here
+    close(p.TaskQueue)
+    for _, worker := range p.Workers {
+        <-worker.TaskQueue
+    }
 }
