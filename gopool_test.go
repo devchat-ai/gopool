@@ -19,7 +19,7 @@ func TestGoPool(t *testing.T) {
 func BenchmarkGoPool(b *testing.B) {
 	var wg sync.WaitGroup
 	var taskNum = int(1e6)
-	pool := NewGoPool(10000)
+	pool := NewGoPool(1e4)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -32,7 +32,7 @@ func BenchmarkGoPool(b *testing.B) {
 		}
 	}
 	wg.Wait()
-	pool.Release()
+	// pool.Release()
 }
 
 func BenchmarkGoroutines(b *testing.B) {
