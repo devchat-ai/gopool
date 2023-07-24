@@ -9,6 +9,7 @@ type Task func()
 type GoPool struct {
     Workers    []*Worker
     MaxWorkers int
+    MinWorkers int
     workerStack []int
     taskQueue chan Task
     lock sync.Locker
@@ -24,9 +25,16 @@ func WithLock(lock sync.Locker) Option {
     }
 }
 
+func WithMinWorkers(minWorkers int) Option {
+    return func(p *GoPool) {
+        p.MinWorkers = minWorkers
+    }
+}
+
 func NewGoPool(maxWorkers int, opts ...Option) *GoPool {
     pool := &GoPool{
         MaxWorkers: maxWorkers,
+        MinWorkers: maxWorkers, // Set MinWorkers to MaxWorkers by default
         Workers:    make([]*Worker, maxWorkers),
         workerStack: make([]int, maxWorkers),
         taskQueue: make(chan Task, 1e6),
@@ -38,7 +46,7 @@ func NewGoPool(maxWorkers int, opts ...Option) *GoPool {
     if pool.cond == nil {
         pool.cond = sync.NewCond(pool.lock)
     }
-    for i := 0; i < maxWorkers; i++ {
+    for i := 0; i < pool.MinWorkers; i++ {
         worker := newWorker()
         pool.Workers[i] = worker
         pool.workerStack[i] = i
@@ -90,5 +98,14 @@ func (p *GoPool) dispatch() {
         p.cond.L.Unlock()
         workerIndex := p.popWorker()
         p.Workers[workerIndex].TaskQueue <- task
+        if len(p.taskQueue) > (p.MaxWorkers-p.MinWorkers)/2+p.MinWorkers && len(p.workerStack) < p.MaxWorkers {
+            worker := newWorker()
+            p.Workers = append(p.Workers, worker)
+            p.workerStack = append(p.workerStack, len(p.Workers)-1)
+            worker.start(p, len(p.Workers)-1)
+        } else if len(p.taskQueue) < p.MinWorkers && len(p.workerStack) > p.MinWorkers {
+            p.Workers = p.Workers[:len(p.Workers)-1]
+            p.workerStack = p.workerStack[:len(p.workerStack)-1]
+        }
     }
 }
