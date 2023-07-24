@@ -1,20 +1,21 @@
 package gopool
 
-type Worker struct {
-    TaskQueue chan Task
+// worker represents a worker in the pool.
+type worker struct {
+    taskQueue chan task
 }
 
-func newWorker() *Worker {
-    return &Worker{
-        TaskQueue: make(chan Task, 1),
+func newWorker() *worker {
+    return &worker{
+        taskQueue: make(chan task, 1),
     }
 }
 
-func (w *Worker) start(pool *GoPool, workerIndex int) {
+func (w *worker) start(pool *goPool, workerIndex int) {
     go func() {
-        for task := range w.TaskQueue {
-            if task != nil {
-                task()
+        for t := range w.taskQueue {
+            if t != nil {
+                t()
             }
             pool.pushWorker(workerIndex)
         }

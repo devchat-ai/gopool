@@ -84,6 +84,34 @@ func main() {
 }
 ```
 
+## Dynamic Worker Adjustment
+
+GoPool supports dynamic worker adjustment. This means that the number of workers in the pool can increase or decrease based on the number of tasks in the queue. This feature can be enabled by setting the MinWorkers option when creating the pool.
+
+Here is an example of how to use GoPool with dynamic worker adjustment:
+
+```go
+package main
+
+import (
+    "time"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithMinWorkers(50))
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() {
+            time.Sleep(10 * time.Millisecond)
+        })
+    }
+    pool.Release()
+}
+```
+
+In this example, the pool starts with 50 workers. If the number of tasks in the queue exceeds (MaxWorkers - MinWorkers) / 2 + MinWorkers, the pool will add more workers. If the number of tasks in the queue is less than MinWorkers, the pool will remove some workers.
+
 ## Performance Testing
 
 We have conducted several performance tests to evaluate the efficiency and performance of GoPool. Here are the results:
