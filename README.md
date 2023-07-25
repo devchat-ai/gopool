@@ -31,7 +31,7 @@ GoPool is a high-performance, feature-rich, and easy-to-use worker pool library 
 To install GoPool, use `go get`:
 
 ```bash
-go get -u github.com/devchat-ai/gopool
+go get github.com/devchat-ai/gopool@v0.2.0
 ```
 
 ## Usage
@@ -50,12 +50,14 @@ import (
 
 func main() {
     pool := gopool.NewGoPool(100)
+    defer pool.Release()
+
     for i := 0; i < 1000; i++ {
         pool.AddTask(func() {
             time.Sleep(10 * time.Millisecond)
         })
     }
-    pool.Release()
+    pool.Wait()
 }
 ```
 
@@ -73,12 +75,14 @@ import (
 
 func main() {
     pool := gopool.NewGoPool(100, gopool.WithLock(new(spinlock.SpinLock)))
+    defer pool.Release()
+
     for i := 0; i < 1000; i++ {
         pool.AddTask(func() {
             time.Sleep(10 * time.Millisecond)
         })
     }
-    pool.Release()
+    pool.Wait()
 }
 ```
 
@@ -99,12 +103,14 @@ import (
 
 func main() {
     pool := gopool.NewGoPool(100, gopool.WithMinWorkers(50))
+    defer pool.Release()
+
     for i := 0; i < 1000; i++ {
         pool.AddTask(func() {
             time.Sleep(10 * time.Millisecond)
         })
     }
-    pool.Release()
+    pool.Wait()
 }
 ```
 
@@ -127,13 +133,15 @@ import (
 
 func main() {
     pool := gopool.NewGoPool(100, gopool.WithTimeout(1*time.Second))
+    defer pool.Release()
+
     for i := 0; i < 1000; i++ {
         pool.AddTask(func() (interface{}, error) {
             time.Sleep(2 * time.Second)
             return nil, nil
         })
     }
-    pool.Release()
+    pool.Wait()
 }
 ```
 
@@ -159,12 +167,14 @@ func main() {
     pool := gopool.NewGoPool(100, gopool.WithErrorCallback(func(err error) {
         fmt.Println("Task error:", err)
     }))
+    defer pool.Release()
+
     for i := 0; i < 1000; i++ {
         pool.AddTask(func() (interface{}, error) {
             return nil, errors.New("task error")
         })
     }
-    pool.Release()
+    pool.Wait()
 }
 ```
 
@@ -189,12 +199,14 @@ func main() {
     pool := gopool.NewGoPool(100, gopool.WithResultCallback(func(result interface{}) {
         fmt.Println("Task result:", result)
     }))
+    defer pool.Release()
+
     for i := 0; i < 1000; i++ {
         pool.AddTask(func() (interface{}, error) {
             return "task result", nil
         })
     }
-    pool.Release()
+    pool.Wait()
 }
 ```
 

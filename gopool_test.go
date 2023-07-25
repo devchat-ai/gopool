@@ -11,30 +11,33 @@ import (
 
 func TestGoPoolWithMutex(t *testing.T) {
 	pool := NewGoPool(100, WithLock(new(sync.Mutex)))
+	defer pool.Release()
 	for i := 0; i < 1000; i++ {
 		pool.AddTask(func() (interface{}, error) {
 			time.Sleep(10 * time.Millisecond)
 			return nil, nil
 		})
 	}
-	pool.Release()
+	pool.Wait()
 }
 
 func TestGoPoolWithSpinLock(t *testing.T) {
 	pool := NewGoPool(100, WithLock(new(spinlock.SpinLock)))
+	defer pool.Release()
 	for i := 0; i < 1000; i++ {
 		pool.AddTask(func() (interface{}, error) {
 			time.Sleep(10 * time.Millisecond)
 			return nil, nil
 		})
 	}
-	pool.Release()
+	pool.Wait()
 }
 
 func BenchmarkGoPoolWithMutex(b *testing.B) {
 	var wg sync.WaitGroup
 	var taskNum = int(1e6)
 	pool := NewGoPool(1e4, WithLock(new(sync.Mutex)))
+	defer pool.Release()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -46,16 +49,16 @@ func BenchmarkGoPoolWithMutex(b *testing.B) {
 				return nil, nil
 			})
 		}
+		wg.Wait()
 	}
-	wg.Wait()
 	b.StopTimer()
-	pool.Release()
 }
 
 func BenchmarkGoPoolWithSpinLock(b *testing.B) {
 	var wg sync.WaitGroup
 	var taskNum = int(1e6)
 	pool := NewGoPool(1e4, WithLock(new(spinlock.SpinLock)))
+	defer pool.Release()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -67,10 +70,9 @@ func BenchmarkGoPoolWithSpinLock(b *testing.B) {
 				return nil, nil
 			})
 		}
+		wg.Wait()
 	}
-	wg.Wait()
 	b.StopTimer()
-	pool.Release()
 }
 
 func BenchmarkGoroutines(b *testing.B) {
@@ -86,6 +88,7 @@ func BenchmarkGoroutines(b *testing.B) {
 				return nil, nil
 			}()
 		}
+		wg.Wait()
 	}
 }
 
@@ -96,12 +99,14 @@ func TestGoPoolWithError(t *testing.T) {
             t.Errorf("Expected error %v, but got %v", errTaskError, err)
         }
     }))
+	defer pool.Release()
+
     for i := 0; i< 1000; i++ {
         pool.AddTask(func() (interface{}, error) {
             return nil, errTaskError
         })
     }
-    pool.Release()
+    pool.Wait()
 }
 
 func TestGoPoolWithResult(t *testing.T) {
@@ -111,10 +116,12 @@ func TestGoPoolWithResult(t *testing.T) {
             t.Errorf("Expected result %v, but got %v", expectedResult, result)
         }
     }))
+	defer pool.Release()
+
     for i := 0; i< 1000; i++ {
         pool.AddTask(func() (interface{}, error) {
             return expectedResult, nil
         })
     }
-    pool.Release()
+    pool.Wait()
 }

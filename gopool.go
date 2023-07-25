@@ -70,6 +70,13 @@ func (p *goPool) AddTask(t task) {
     p.taskQueue <- t
 }
 
+// Wait waits for all tasks to be dispatched.
+func (p *goPool) Wait() {
+    for len(p.taskQueue) > 0 {
+        time.Sleep(100 * time.Millisecond)
+    }
+}
+
 // Release stops all workers and releases resources.
 func (p *goPool) Release() { 
     close(p.taskQueue)
