@@ -12,16 +12,23 @@ type task func() (interface{}, error)
 // goPool represents a pool of workers.
 type goPool struct {
     workers    []*worker
-    maxWorkers int
-    minWorkers int
     workerStack []int
+    maxWorkers int
+    // Set by WithMinWorkers(), used to adjust the number of workers. Default equals to maxWorkers.
+    minWorkers int
+    // tasks are added to this channel first, then dispatched to workers. Default buffer size is 1 million.
     taskQueue chan task
+    // Set by WithRetryCount(), used to retry a task when it fails. Default is 0.
     retryCount int
     lock sync.Locker
     cond *sync.Cond
+    // Set by WithTimeout(), used to set a timeout for a task. Default is 0, which means no timeout.
     timeout time.Duration
+    // Set by WithResultCallback(), used to handle the result of a task. Default is nil.
     resultCallback func(interface{})
+    // Set by WithErrorCallback(), used to handle the error of a task. Default is nil.
     errorCallback func(error)
+    // adjustInterval is the interval to adjust the number of workers. Default is 1 second.
     adjustInterval time.Duration
 }
 
@@ -29,7 +36,8 @@ type goPool struct {
 func NewGoPool(maxWorkers int, opts ...Option) *goPool {
     pool := &goPool{
         maxWorkers: maxWorkers,
-        minWorkers: maxWorkers, // Set minWorkers to maxWorkers by default
+        // Set minWorkers to maxWorkers by default
+        minWorkers: maxWorkers,
         workers:    make([]*worker, maxWorkers),
         workerStack: make([]int, maxWorkers),
         taskQueue: make(chan task, 1e6),
@@ -38,12 +46,14 @@ func NewGoPool(maxWorkers int, opts ...Option) *goPool {
         timeout: 0,
         adjustInterval: 1 * time.Second,
     }
+    // Apply options
     for _, opt := range opts {
         opt(pool)
     }
     if pool.cond == nil {
         pool.cond = sync.NewCond(pool.lock)
     }
+    // Create workers with the minimum number. Don't use pushWorker() here.
     for i := 0; i < pool.minWorkers; i++ {
         worker := newWorker()
         pool.workers[i] = worker
@@ -61,7 +71,7 @@ func (p *goPool) AddTask(t task) {
 }
 
 // Release stops all workers and releases resources.
-func (p *goPool) Release() {
+func (p *goPool) Release() { 
     close(p.taskQueue)
     p.cond.L.Lock()
     for len(p.workerStack) != p.minWorkers {
@@ -90,13 +100,14 @@ func (p *goPool) pushWorker(workerIndex int) {
     p.cond.Signal()
 }
 
+// adjustWorkers adjusts the number of workers according to the number of tasks in the queue.
 func (p *goPool) adjustWorkers() {
     ticker := time.NewTicker(p.adjustInterval)
     defer ticker.Stop()
 
     for range ticker.C {
         p.cond.L.Lock()
-        if len(p.taskQueue) > (p.maxWorkers-p.minWorkers)/2+p.minWorkers && len(p.workerStack) < p.maxWorkers {
+        if len(p.taskQueue) > len(p.workerStack)*3/4 && len(p.workerStack) < p.maxWorkers {
             // Double the number of workers until it reaches the maximum
             newWorkers := min(len(p.workerStack)*2, p.maxWorkers) - len(p.workerStack)
             for i := 0; i < newWorkers; i++ {
@@ -105,7 +116,7 @@ func (p *goPool) adjustWorkers() {
                 p.workerStack = append(p.workerStack, len(p.workers)-1)
                 worker.start(p, len(p.workers)-1)
             }
-        } else if len(p.taskQueue) < p.minWorkers && len(p.workerStack) > p.minWorkers {
+        } else if len(p.taskQueue) == 0 && len(p.workerStack) > p.minWorkers {
             // Halve the number of workers until it reaches the minimum
             removeWorkers := max((len(p.workerStack)-p.minWorkers)/2, p.minWorkers)
             p.workers = p.workers[:len(p.workers)-removeWorkers]
@@ -115,6 +126,7 @@ func (p *goPool) adjustWorkers() {
     }
 }
 
+// dispatch dispatches tasks to workers.
 func (p *goPool) dispatch() {
     for t := range p.taskQueue {
         p.cond.L.Lock()

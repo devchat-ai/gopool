@@ -6,25 +6,25 @@ GoPool is a high-performance, feature-rich, and easy-to-use worker pool library 
 
 ## Features
 
-- **Task Queue**: GoPool uses a thread-safe task queue to store tasks waiting to be processed. Multiple workers can simultaneously fetch tasks from this queue.
+- [x] **Task Queue**: GoPool uses a thread-safe task queue to store tasks waiting to be processed. Multiple workers can simultaneously fetch tasks from this queue.
 
-- **Dynamic Worker Adjustment**: GoPool can dynamically adjust the number of workers based on the number of tasks and system load.
+- [x] **Concurrency Control**: GoPool can control the number of concurrent tasks to prevent system overload.
 
-- **Graceful Shutdown**: GoPool can shut down gracefully. It stops accepting new tasks and waits for all ongoing tasks to complete before shutting down when there are no more tasks or a shutdown signal is received.
+- [x] **Dynamic Worker Adjustment**: GoPool can dynamically adjust the number of workers based on the number of tasks and system load.
 
-- **Task Error Handling**: GoPool can handle errors that occur during task execution.
+- [x] **Graceful Shutdown**: GoPool can shut down gracefully. It stops accepting new tasks and waits for all ongoing tasks to complete before shutting down when there are no more tasks or a shutdown signal is received.
 
-- **Task Timeout Handling**: GoPool can handle task execution timeouts. If a task is not completed within the specified timeout period, the task is considered failed and a timeout error is returned.
+- [x] **Task Error Handling**: GoPool can handle errors that occur during task execution.
 
-- **Task Priority**: GoPool supports task priority. Tasks with higher priority are processed first.
+- [x] **Task Timeout Handling**: GoPool can handle task execution timeouts. If a task is not completed within the specified timeout period, the task is considered failed and a timeout error is returned.
 
-- **Task Result Retrieval**: GoPool provides a way to retrieve task results.
+- [x] **Task Result Retrieval**: GoPool provides a way to retrieve task results.
 
-- **Task Retry**: GoPool provides a retry mechanism for failed tasks.
+- [x] **Task Retry**: GoPool provides a retry mechanism for failed tasks.
 
-- **Concurrency Control**: GoPool can control the number of concurrent tasks to prevent system overload.
+- [x] **Lock Customization**: GoPool supports different types of locks. You can use the built-in `sync.Mutex` or a custom lock such as `spinlock.SpinLock`.
 
-- **Lock Customization**: GoPool supports different types of locks. You can use the built-in `sync.Mutex` or a custom lock such as `spinlock.SpinLock`.
+- [ ] **Task Priority**: GoPool supports task priority. Tasks with higher priority are processed first.
 
 ## Installation
 
