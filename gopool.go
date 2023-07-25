@@ -5,8 +5,9 @@ import (
     "time"
 )
 
-// Task represents a function that will be executed by a worker.
-type task func()
+// task represents a function that will be executed by a worker.
+// It returns a result and an error.
+type task func() (interface{}, error)
 
 // goPool represents a pool of workers.
 type goPool struct {
@@ -18,6 +19,8 @@ type goPool struct {
     lock sync.Locker
     cond *sync.Cond
     timeout time.Duration
+    resultCallback func(interface{})
+    errorCallback func(error)
 }
 
 // NewGoPool creates a new pool of workers.

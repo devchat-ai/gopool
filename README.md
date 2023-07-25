@@ -12,7 +12,7 @@ GoPool is a high-performance, feature-rich, and easy-to-use worker pool library 
 
 - **Graceful Shutdown**: GoPool can shut down gracefully. It stops accepting new tasks and waits for all ongoing tasks to complete before shutting down when there are no more tasks or a shutdown signal is received.
 
-- **Error Handling**: GoPool can handle errors that occur during task execution.
+- **Task Error Handling**: GoPool can handle errors that occur during task execution.
 
 - **Task Timeout Handling**: GoPool can handle task execution timeouts. If a task is not completed within the specified timeout period, the task is considered failed and a timeout error is returned.
 
@@ -111,6 +111,96 @@ func main() {
 ```
 
 In this example, the pool starts with 50 workers. If the number of tasks in the queue exceeds (MaxWorkers - MinWorkers) / 2 + MinWorkers, the pool will add more workers. If the number of tasks in the queue is less than MinWorkers, the pool will remove some workers.
+
+## Task Timeout Handling
+
+GoPool supports task timeout. If a task takes longer than the specified timeout, it will be cancelled. This feature can be enabled by setting the `WithTimeout` option when creating the pool.
+
+Here is an example of how to use GoPool with task timeout:
+
+```go
+package main
+
+import (
+    "time"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithTimeout(1*time.Second))
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() (interface{}, error) {
+            time.Sleep(2 * time.Second)
+            return nil, nil
+        })
+    }
+    pool.Release()
+}
+```
+
+In this example, the task will be cancelled if it takes longer than 1 second.
+
+## Task Error Handling
+
+GoPool supports task error handling. If a task returns an error, the error callback function will be called. This feature can be enabled by setting the `WithErrorCallback` option when creating the pool.
+
+Here is an example of how to use GoPool with error handling:
+
+```go
+package main
+
+import (
+    "errors"
+    "fmt"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithErrorCallback(func(err error) {
+        fmt.Println("Task error:", err)
+    }))
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() (interface{}, error) {
+            return nil, errors.New("task error")
+        })
+    }
+    pool.Release()
+}
+```
+
+In this example, if a task returns an error, the error will be printed to the console.
+
+## Task Result Retrieval
+
+GoPool supports task result retrieval. If a task returns a result, the result callback function will be called. This feature can be enabled by setting the `WithResultCallback` option when creating the pool.
+
+Here is an example of how to use GoPool with task result retrieval:
+
+```go
+package main
+
+import (
+    "fmt"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithResultCallback(func(result interface{}) {
+        fmt.Println("Task result:", result)
+    }))
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() (interface{}, error) {
+            return "task result", nil
+        })
+    }
+    pool.Release()
+}
+```
+
+In this example, if a task returns a result, the result will be printed to the console.
 
 ## Performance Testing
 

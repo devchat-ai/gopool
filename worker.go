@@ -20,6 +20,9 @@ func (w *worker) start(pool *goPool, workerIndex int) {
     go func() {
         for t := range w.taskQueue {
             if t != nil {
+                var result interface{}
+                var err error
+
                 if pool.timeout > 0 {
                     // Create a context with timeout
                     ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
@@ -30,7 +33,7 @@ func (w *worker) start(pool *goPool, workerIndex int) {
 
                     // Run the task in a separate goroutine
                     go func() {
-                        t()
+                        result, err = t()
                         close(done)
                     }()
 
@@ -38,13 +41,25 @@ func (w *worker) start(pool *goPool, workerIndex int) {
                     select {
                     case <-done:
                         // The task finished successfully
+                        if err != nil && pool.errorCallback != nil {
+                            pool.errorCallback(err)
+                        } else if pool.resultCallback != nil {
+                            pool.resultCallback(result)
+                        }
                     case <-ctx.Done():
                         // The context timed out, the task took too long
-                        fmt.Println("Task timed out")
+                        if pool.errorCallback != nil {
+                            pool.errorCallback(fmt.Errorf("Task timed out"))
+                        }
                     }
                 } else {
                     // If timeout is not set or is zero, just run the task
-                    t()
+                    result, err = t()
+                    if err != nil && pool.errorCallback != nil {
+                        pool.errorCallback(err)
+                    } else if pool.resultCallback != nil {
+                        pool.resultCallback(result)
+                    }
                 }
             }
             pool.pushWorker(workerIndex)

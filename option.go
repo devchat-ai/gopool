@@ -29,3 +29,17 @@ func WithTimeout(timeout time.Duration) Option {
         p.timeout = timeout
     }
 }
+
+// WithResultCallback sets the result callback for the pool.
+func WithResultCallback(callback func(interface{})) Option {
+    return func(p *goPool) {
+        p.resultCallback = callback
+    }
+}
+
+// WithErrorCallback sets the error callback for the pool.
+func WithErrorCallback(callback func(error)) Option {
+    return func(p *goPool) {
+        p.errorCallback = callback
+    }
+}
