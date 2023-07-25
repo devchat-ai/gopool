@@ -12,17 +12,17 @@ GoPool is a high-performance, feature-rich, and easy-to-use worker pool library 
 
 - **Graceful Shutdown**: GoPool can shut down gracefully. It stops accepting new tasks and waits for all ongoing tasks to complete before shutting down when there are no more tasks or a shutdown signal is received.
 
-- **Error Handling**: GoPool can handle errors that occur during task execution. For example, it can provide an error callback function.
+- **Error Handling**: GoPool can handle errors that occur during task execution.
 
-- **Task Timeout Handling**: GoPool can handle task execution timeouts. For example, it can set a timeout period, and if a task is not completed within this period, the task is considered failed.
+- **Task Timeout Handling**: GoPool can handle task execution timeouts. If a task is not completed within the specified timeout period, the task is considered failed and a timeout error is returned.
 
 - **Task Priority**: GoPool supports task priority. Tasks with higher priority are processed first.
 
-- **Task Result Retrieval**: GoPool provides a way to retrieve task results. For example, it can provide a result callback function.
+- **Task Result Retrieval**: GoPool provides a way to retrieve task results.
 
-- **Task Retry**: GoPool provides a retry mechanism for failed tasks. For example, it can set the number of retries and the retry interval.
+- **Task Retry**: GoPool provides a retry mechanism for failed tasks.
 
-- **Task Progress Tracking**: GoPool provides task progress tracking. For example, it can provide a progress callback function or a method to query the current task progress.
+- **Task Progress Tracking**: GoPool provides task progress tracking.
 
 - **Concurrency Control**: GoPool can control the number of concurrent tasks to prevent system overload.
 

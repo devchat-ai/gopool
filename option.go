@@ -1,6 +1,9 @@
 package gopool
 
-import "sync"
+import (
+    "sync"
+    "time"
+)
 
 // Option represents an option for the pool.
 type Option func(*goPool)
@@ -17,5 +20,12 @@ func WithLock(lock sync.Locker) Option {
 func WithMinWorkers(minWorkers int) Option {
     return func(p *goPool) {
         p.minWorkers = minWorkers
+    }
+}
+
+// WithTimeout sets the timeout for the pool.
+func WithTimeout(timeout time.Duration) Option {
+    return func(p *goPool) {
+        p.timeout = timeout
     }
 }

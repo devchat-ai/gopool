@@ -2,6 +2,7 @@ package gopool
 
 import (
     "sync"
+    "time"
 )
 
 // Task represents a function that will be executed by a worker.
@@ -16,6 +17,7 @@ type goPool struct {
     taskQueue chan task
     lock sync.Locker
     cond *sync.Cond
+    timeout time.Duration
 }
 
 // NewGoPool creates a new pool of workers.
@@ -27,6 +29,7 @@ func NewGoPool(maxWorkers int, opts ...Option) *goPool {
         workerStack: make([]int, maxWorkers),
         taskQueue: make(chan task, 1e6),
         lock: new(sync.Mutex),
+        timeout: 0,
     }
     for _, opt := range opts {
         opt(pool)
