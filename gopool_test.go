@@ -34,7 +34,7 @@ func TestGoPoolWithSpinLock(t *testing.T) {
 func BenchmarkGoPoolWithMutex(b *testing.B) {
 	var wg sync.WaitGroup
 	var taskNum = int(1e6)
-	pool := NewGoPool(5e4, WithLock(new(sync.Mutex)))
+	pool := NewGoPool(1e4, WithLock(new(sync.Mutex)))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -55,7 +55,7 @@ func BenchmarkGoPoolWithMutex(b *testing.B) {
 func BenchmarkGoPoolWithSpinLock(b *testing.B) {
 	var wg sync.WaitGroup
 	var taskNum = int(1e6)
-	pool := NewGoPool(5e4, WithLock(new(spinlock.SpinLock)))
+	pool := NewGoPool(1e4, WithLock(new(spinlock.SpinLock)))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

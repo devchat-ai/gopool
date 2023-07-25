@@ -43,3 +43,10 @@ func WithErrorCallback(callback func(error)) Option {
         p.errorCallback = callback
     }
 }
+
+// WithRetryCount sets the retry count for the pool.
+func WithRetryCount(retryCount int) Option {
+    return func(p *goPool) {
+        p.retryCount = retryCount
+    }
+}

@@ -22,8 +22,6 @@ GoPool is a high-performance, feature-rich, and easy-to-use worker pool library 
 
 - **Task Retry**: GoPool provides a retry mechanism for failed tasks.
 
-- **Task Progress Tracking**: GoPool provides task progress tracking.
-
 - **Concurrency Control**: GoPool can control the number of concurrent tasks to prevent system overload.
 
 - **Lock Customization**: GoPool supports different types of locks. You can use the built-in `sync.Mutex` or a custom lock such as `spinlock.SpinLock`.
