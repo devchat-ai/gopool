@@ -1,10 +1,10 @@
 package gopool
 
 import (
+	"errors"
 	"sync"
 	"testing"
 	"time"
-    "errors"
 
 	"github.com/daniel-hutao/spinlock"
 )
@@ -93,35 +93,35 @@ func BenchmarkGoroutines(b *testing.B) {
 }
 
 func TestGoPoolWithError(t *testing.T) {
-    var errTaskError = errors.New("task error")
-    pool := NewGoPool(100, WithErrorCallback(func(err error) {
-        if err != errTaskError {
-            t.Errorf("Expected error %v, but got %v", errTaskError, err)
-        }
-    }))
+	var errTaskError = errors.New("task error")
+	pool := NewGoPool(100, WithErrorCallback(func(err error) {
+		if err != errTaskError {
+			t.Errorf("Expected error %v, but got %v", errTaskError, err)
+		}
+	}))
 	defer pool.Release()
 
-    for i := 0; i< 1000; i++ {
-        pool.AddTask(func() (interface{}, error) {
-            return nil, errTaskError
-        })
-    }
-    pool.Wait()
+	for i := 0; i < 1000; i++ {
+		pool.AddTask(func() (interface{}, error) {
+			return nil, errTaskError
+		})
+	}
+	pool.Wait()
 }
 
 func TestGoPoolWithResult(t *testing.T) {
-    var expectedResult = "task result"
-    pool := NewGoPool(100, WithResultCallback(func(result interface{}) {
-        if result != expectedResult {
-            t.Errorf("Expected result %v, but got %v", expectedResult, result)
-        }
-    }))
+	var expectedResult = "task result"
+	pool := NewGoPool(100, WithResultCallback(func(result interface{}) {
+		if result != expectedResult {
+			t.Errorf("Expected result %v, but got %v", expectedResult, result)
+		}
+	}))
 	defer pool.Release()
 
-    for i := 0; i< 1000; i++ {
-        pool.AddTask(func() (interface{}, error) {
-            return expectedResult, nil
-        })
-    }
-    pool.Wait()
+	for i := 0; i < 1000; i++ {
+		pool.AddTask(func() (interface{}, error) {
+			return expectedResult, nil
+		})
+	}
+	pool.Wait()
 }
