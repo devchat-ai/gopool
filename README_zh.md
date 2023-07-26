@@ -1,11 +1,13 @@
 <div align="center">
 </br>
 
+<img src="./logo/gopool-logo-350.png" width="120">
+
 # GoPool
 
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat&logo=github&color=2370ff&labelColor=454545)](https://makeapullrequest.com)
 [![build and test](https://github.com/devchat-ai/gopool/workflows/CI/badge.svg)](https://github.com/devchat-ai/gopool/actions)
-[![go report](https://goreportcard.com/badge/github.com/devchat-ai/gopool)](https://goreportcard.com/report/github.com/devchat-ai/gopool)
+[![go report](https://goreportcard.com/badge/github.com/devchat-ai/gopool?style=flat)](https://goreportcard.com/report/github.com/devchat-ai/gopool)
 [![release](https://img.shields.io/github/release/devchat-ai/gopool.svg)](https://github.com/devchat-ai/gopool/releases/)
 
 | [English](README.md) | 中文 |
@@ -16,6 +18,10 @@
 欢迎来到 GoPool，这是**一个95%的代码由GPT生成的项目**。你可以在[pro.devchat.ai](https://pro.devchat.ai)找到相应的 Commit 和 Prompt 列表。
 
 GoPool 是一个用 Golang 实现的高性能、功能丰富、易于使用的工作池库。它会管理和回收一组 goroutine 来并发完成任务，从而提高你的应用程序的效率和性能。
+
+<div align="center">
+<img src="./logo/gopool-logo-600x300.png" width="600">
+</div>
 
 ## 特性
 
