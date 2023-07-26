@@ -20,7 +20,7 @@
 GoPool 是一个用 Golang 实现的高性能、功能丰富、易于使用的工作池库。它会管理和回收一组 goroutine 来并发完成任务，从而提高你的应用程序的效率和性能。
 
 <div align="center">
-<img src="./logo/gopool-logo-600x300.png" width="600">
+<img src="./logo/gopool.png" width="750">
 </div>
 
 ## 特性
