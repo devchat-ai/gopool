@@ -50,7 +50,7 @@ GoPool is a high-performance, feature-rich, and easy-to-use worker pool library 
 To install GoPool, use `go get`:
 
 ```bash
-go get github.com/devchat-ai/gopool@v0.3.0
+go get -u github.com/devchat-ai/gopool
 ```
 
 ## Usage

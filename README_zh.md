@@ -50,7 +50,7 @@ GoPool 是一个用 Golang 实现的高性能、功能丰富、易于使用的�
 要安装GoPool，使用`go get`：
 
 ```bash
-go get github.com/devchat-ai/gopool@v0.2.0
+go get -u github.com/devchat-ai/gopool
 ```
 
 ## 使用
