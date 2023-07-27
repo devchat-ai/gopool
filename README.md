@@ -72,8 +72,9 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() {
+        pool.AddTask(func() (interface{}, error){
             time.Sleep(10 * time.Millisecond)
+            return nil, nil
         })
     }
     pool.Wait()
@@ -97,8 +98,9 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() {
+        pool.AddTask(func() (interface{}, error){
             time.Sleep(10 * time.Millisecond)
+            return nil, nil
         })
     }
     pool.Wait()
@@ -125,8 +127,9 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() {
+        pool.AddTask(func() (interface{}, error){
             time.Sleep(10 * time.Millisecond)
+            return nil, nil
         })
     }
     pool.Wait()
