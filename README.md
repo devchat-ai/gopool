@@ -231,6 +231,37 @@ func main() {
 
 In this example, if a task returns a result, the result will be printed to the console.
 
+## Task Retry
+
+GoPool supports task retry. If a task fails, it can be retried for a specified number of times. This feature can be enabled by setting the `WithRetryCount` option when creating the pool.
+
+Here is an example of how to use GoPool with task retry:
+
+```go
+package main
+
+import (
+    "errors"
+    "fmt"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithRetryCount(3))
+    defer pool.Release()
+
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() (interface{}, error) {
+            return nil, errors.New("task error")
+        })
+    }
+    pool.Wait()
+}
+```
+
+In this example, if a task fails, it will be retried up to 3 times.
+
 ## Performance Testing
 
 We have conducted several performance tests to evaluate the efficiency and performance of GoPool. Here are the results:

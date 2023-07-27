@@ -125,3 +125,26 @@ func TestGoPoolWithResult(t *testing.T) {
 	}
 	pool.Wait()
 }
+
+func TestGoPoolWithRetry(t *testing.T) {
+    var retryCount = 3
+    var taskError = errors.New("task error")
+    var taskRunCount = 0
+
+    pool := NewGoPool(100, WithRetryCount(retryCount))
+    defer pool.Release()
+
+    pool.AddTask(func() (interface{}, error) {
+        taskRunCount++
+        if taskRunCount <= retryCount {
+            return nil, taskError
+        }
+        return nil, nil
+    })
+
+    pool.Wait()
+
+    if taskRunCount != retryCount+1 {
+        t.Errorf("Expected task to run %v times, but it ran %v times", retryCount+1, taskRunCount)
+    }
+}

@@ -31,7 +31,7 @@ GoPool 是一个用 Golang 实现的高性能、功能丰富、易于使用的�
 
 - [x] **动态工作器调整**：GoPool 可以根据任务数量和系统负载动态调整工作器的数量。
 
-- [x] **优雅的关闭**：GoPool 可以优雅地关闭。当没有更多的任务或收到关闭信号时，它会停止接受新的任务，并等待所有进行中的任务完成后再关闭。
+- [x] **优雅关闭**：GoPool 可以优雅地关闭。当没有更多的任务或收到关闭信号时，它会停止接受新的任务，并等待所有进行中的任务完成后再关闭。
 
 - [x] **任务错误处理**：GoPool 可以处理任务执行过程中出现的错误。
 
@@ -41,7 +41,7 @@ GoPool 是一个用 Golang 实现的高性能、功能丰富、易于使用的�
 
 - [x] **任务重试**：GoPool 为失败的任务提供了重试机制。
 
-- [x] **锁定定制**：GoPool 支持不同类型的锁。你可以使用内置的`sync.Mutex`或自定义锁，如`spinlock.SpinLock`。
+- [x] **锁定制**：GoPool 支持不同类型的锁。你可以使用内置的`sync.Mutex`或自定义锁，如`spinlock.SpinLock`。
 
 - [ ] **任务优先级**：GoPool 支持任务优先级。优先级更高的任务会被优先处理。
 
@@ -230,6 +230,37 @@ func main() {
 ```
 
 在这个示例中，如果一个任务返回一个结果，结果将被打印到控制台。
+
+## 任务重试
+
+GoPool 支持任务重试。如果任务失败，可以重试指定的次数。可以通过在创建池时设置 `WithRetryCount` 选项来启用此功能。
+
+以下是如何使用带有任务重试的 GoPool 的示例：
+
+```go
+package main
+
+import (
+    "errors"
+    "fmt"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithRetryCount(3))
+    defer pool.Release()
+
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() (interface{}, error) {
+            return nil, errors.New("task error")
+        })
+    }
+    pool.Wait()
+}
+```
+
+在这个示例中，如果任务失败，它将重试最多3次。
 
 ## 性能测试
 
