@@ -30,6 +30,8 @@ type goPool struct {
 	errorCallback func(error)
 	// adjustInterval is the interval to adjust the number of workers. Default is 1 second.
 	adjustInterval time.Duration
+	// exitChan is used to notify the adjustWorkers goroutine to exit.
+	exitChan chan struct{}
 }
 
 // NewGoPool creates a new pool of workers.
@@ -45,6 +47,7 @@ func NewGoPool(maxWorkers int, opts ...Option) *goPool {
 		lock:           new(sync.Mutex),
 		timeout:        0,
 		adjustInterval: 1 * time.Second,
+		exitChan:       make(chan struct{}),
 	}
 	// Apply options
 	for _, opt := range opts {
@@ -80,6 +83,7 @@ func (p *goPool) Wait() {
 // Release stops all workers and releases resources.
 func (p *goPool) Release() {
 	close(p.taskQueue)
+	close(p.exitChan)
 	p.cond.L.Lock()
 	for len(p.workerStack) != p.minWorkers {
 		p.cond.Wait()
@@ -112,24 +116,29 @@ func (p *goPool) adjustWorkers() {
 	ticker := time.NewTicker(p.adjustInterval)
 	defer ticker.Stop()
 
-	for range ticker.C {
-		p.cond.L.Lock()
-		if len(p.taskQueue) > len(p.workerStack)*3/4 && len(p.workerStack) < p.maxWorkers {
-			// Double the number of workers until it reaches the maximum
-			newWorkers := min(len(p.workerStack)*2, p.maxWorkers) - len(p.workerStack)
-			for i := 0; i < newWorkers; i++ {
-				worker := newWorker()
-				p.workers = append(p.workers, worker)
-				p.workerStack = append(p.workerStack, len(p.workers)-1)
-				worker.start(p, len(p.workers)-1)
+	for {
+		select {
+		case <-ticker.C:
+			p.cond.L.Lock()
+			if len(p.taskQueue) > len(p.workerStack)*3/4 && len(p.workerStack) < p.maxWorkers {
+				// Double the number of workers until it reaches the maximum
+				newWorkers := min(len(p.workerStack)*2, p.maxWorkers) - len(p.workerStack)
+				for i := 0; i < newWorkers; i++ {
+					worker := newWorker()
+					p.workers = append(p.workers, worker)
+					p.workerStack = append(p.workerStack, len(p.workers)-1)
+					worker.start(p, len(p.workers)-1)
+				}
+			} else if len(p.taskQueue) == 0 && len(p.workerStack) > p.minWorkers {
+				// Halve the number of workers until it reaches the minimum
+				removeWorkers := max((len(p.workerStack)-p.minWorkers)/2, p.minWorkers)
+				p.workers = p.workers[:len(p.workers)-removeWorkers]
+				p.workerStack = p.workerStack[:len(p.workerStack)-removeWorkers]
 			}
-		} else if len(p.taskQueue) == 0 && len(p.workerStack) > p.minWorkers {
-			// Halve the number of workers until it reaches the minimum
-			removeWorkers := max((len(p.workerStack)-p.minWorkers)/2, p.minWorkers)
-			p.workers = p.workers[:len(p.workers)-removeWorkers]
-			p.workerStack = p.workerStack[:len(p.workerStack)-removeWorkers]
+			p.cond.L.Unlock()
+		case <-p.exitChan:
+			return
 		}
-		p.cond.L.Unlock()
 	}
 }
 
