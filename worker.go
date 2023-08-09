@@ -69,7 +69,7 @@ func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result interface{
 		return result, err
 	case <-ctx.Done():
 		// The context timed out, the task took too long
-		return nil, fmt.Errorf("Task timed out")
+		return nil, fmt.Errorf("task timed out")
 	}
 }
 

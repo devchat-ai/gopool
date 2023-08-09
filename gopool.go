@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+// GoPool represents a pool of workers.
+type GoPool interface {
+	AddTask(t task)
+	Wait()
+	Release()
+}
+
 // task represents a function that will be executed by a worker.
 // It returns a result and an error.
 type task func() (interface{}, error)
@@ -37,7 +44,7 @@ type goPool struct {
 }
 
 // NewGoPool creates a new pool of workers.
-func NewGoPool(maxWorkers int, opts ...Option) *goPool {
+func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 	ctx, cancel := context.WithCancel(context.Background())
 	pool := &goPool{
 		maxWorkers: maxWorkers,
