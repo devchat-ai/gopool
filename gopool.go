@@ -1,6 +1,7 @@
 package gopool
 
 import (
+	"context"
 	"sync"
 	"time"
 )
@@ -30,12 +31,14 @@ type goPool struct {
 	errorCallback func(error)
 	// adjustInterval is the interval to adjust the number of workers. Default is 1 second.
 	adjustInterval time.Duration
-	// exitChan is used to notify the adjustWorkers goroutine to exit.
-	exitChan chan struct{}
+	ctx    context.Context
+	// cancel is used to cancel the context. It is called when Release() is called.
+	cancel context.CancelFunc
 }
 
 // NewGoPool creates a new pool of workers.
 func NewGoPool(maxWorkers int, opts ...Option) *goPool {
+	ctx, cancel := context.WithCancel(context.Background())
 	pool := &goPool{
 		maxWorkers: maxWorkers,
 		// Set minWorkers to maxWorkers by default
@@ -47,7 +50,8 @@ func NewGoPool(maxWorkers int, opts ...Option) *goPool {
 		lock:           new(sync.Mutex),
 		timeout:        0,
 		adjustInterval: 1 * time.Second,
-		exitChan:       make(chan struct{}),
+		ctx:    ctx,
+		cancel: cancel,
 	}
 	// Apply options
 	for _, opt := range opts {
@@ -83,7 +87,7 @@ func (p *goPool) Wait() {
 // Release stops all workers and releases resources.
 func (p *goPool) Release() {
 	close(p.taskQueue)
-	close(p.exitChan)
+	p.cancel()
 	p.cond.L.Lock()
 	for len(p.workerStack) != p.minWorkers {
 		p.cond.Wait()
@@ -136,7 +140,7 @@ func (p *goPool) adjustWorkers() {
 				p.workerStack = p.workerStack[:len(p.workerStack)-removeWorkers]
 			}
 			p.cond.L.Unlock()
-		case <-p.exitChan:
+		case <-p.ctx.Done():
 			return
 		}
 	}
