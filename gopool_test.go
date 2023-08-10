@@ -149,3 +149,26 @@ func TestGoPoolWithRetry(t *testing.T) {
 		t.Errorf("Expected task to run %v times, but it ran %v times", retryCount+1, taskRunCount)
 	}
 }
+
+func TestGoPoolWithTimeout(t *testing.T) {
+	var taskRun int32
+
+	pool := NewGoPool(100, WithTimeout(100*time.Millisecond), WithErrorCallback(func(err error) {
+		if err.Error() != "task timed out" {
+			t.Errorf("Expected error 'task timed out', but got %v", err)
+		}
+		atomic.StoreInt32(&taskRun, 1)
+	}))
+	defer pool.Release()
+
+	pool.AddTask(func() (interface{}, error) {
+		time.Sleep(200 * time.Millisecond)
+		return nil, nil
+	})
+
+	pool.Wait()
+
+	if atomic.LoadInt32(&taskRun) == 0 {
+		t.Errorf("Expected task to run and timeout, but it did not run")
+	}
+}

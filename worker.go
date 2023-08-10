@@ -54,17 +54,25 @@ func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result interface{
 	defer cancel()
 
 	// Create a channel to receive the result of the task
-	done := make(chan struct{})
+	resultChan := make(chan interface{})
+	errChan := make(chan error)
 
 	// Run the task in a separate goroutine
 	go func() {
-		result, err = t()
-		close(done)
+		res, err := t()
+		select {
+		case resultChan <- res:
+		case errChan <- err:
+		case <-ctx.Done():
+			// The context was cancelled, stop the task
+			return
+		}
 	}()
 
 	// Wait for the task to finish or for the context to timeout
 	select {
-	case <-done:
+	case result = <-resultChan:
+		err = <-errChan
 		// The task finished successfully
 		return result, err
 	case <-ctx.Done():

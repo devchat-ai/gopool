@@ -84,9 +84,17 @@ func (p *goPool) AddTask(t task) {
 	p.taskQueue <- t
 }
 
-// Wait waits for all tasks to be dispatched.
+// Wait waits for all tasks to be dispatched and completed.
 func (p *goPool) Wait() {
-	for len(p.taskQueue) > 0 {
+	for {
+		p.lock.Lock()
+		workerStackLen := len(p.workerStack)
+		p.lock.Unlock()
+
+		if len(p.taskQueue) == 0 && workerStackLen == len(p.workers) {
+			break
+		}
+
 		time.Sleep(100 * time.Millisecond)
 	}
 }
