@@ -172,3 +172,14 @@ func TestGoPoolWithTimeout(t *testing.T) {
 		t.Errorf("Expected task to run and timeout, but it did not run")
 	}
 }
+
+func TestGoPoolWithMinWorkers(t *testing.T) {
+	var minWorkers = 50
+
+	pool := NewGoPool(100, WithMinWorkers(minWorkers))
+	defer pool.Release()
+
+	if pool.GetWorkerCount() != minWorkers {
+		t.Errorf("Expected worker count to be %v, but got %v", minWorkers, pool.GetWorkerCount())
+	}
+}
