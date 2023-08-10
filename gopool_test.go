@@ -3,6 +3,7 @@ package gopool
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -127,24 +128,24 @@ func TestGoPoolWithResult(t *testing.T) {
 }
 
 func TestGoPoolWithRetry(t *testing.T) {
-    var retryCount = 3
-    var taskError = errors.New("task error")
-    var taskRunCount = 0
+	var retryCount = int32(3)
+	var taskError = errors.New("task error")
+	var taskRunCount int32 = 0
 
-    pool := NewGoPool(100, WithRetryCount(retryCount))
-    defer pool.Release()
+	pool := NewGoPool(100, WithRetryCount(int(retryCount)))
+	defer pool.Release()
 
-    pool.AddTask(func() (interface{}, error) {
-        taskRunCount++
-        if taskRunCount <= retryCount {
-            return nil, taskError
-        }
-        return nil, nil
-    })
+	pool.AddTask(func() (interface{}, error) {
+		atomic.AddInt32(&taskRunCount, 1)
+		if taskRunCount <= retryCount {
+			return nil, taskError
+		}
+		return nil, nil
+	})
 
-    pool.Wait()
+	pool.Wait()
 
-    if taskRunCount != retryCount+1 {
-        t.Errorf("Expected task to run %v times, but it ran %v times", retryCount+1, taskRunCount)
-    }
+	if atomic.LoadInt32(&taskRunCount) != retryCount+1 {
+		t.Errorf("Expected task to run %v times, but it ran %v times", retryCount+1, taskRunCount)
+	}
 }

@@ -38,7 +38,7 @@ type goPool struct {
 	errorCallback func(error)
 	// adjustInterval is the interval to adjust the number of workers. Default is 1 second.
 	adjustInterval time.Duration
-	ctx    context.Context
+	ctx            context.Context
 	// cancel is used to cancel the context. It is called when Release() is called.
 	cancel context.CancelFunc
 }
@@ -57,8 +57,8 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 		lock:           new(sync.Mutex),
 		timeout:        0,
 		adjustInterval: 1 * time.Second,
-		ctx:    ctx,
-		cancel: cancel,
+		ctx:            ctx,
+		cancel:         cancel,
 	}
 	// Apply options
 	for _, opt := range opts {
