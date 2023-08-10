@@ -139,18 +139,18 @@ func (p *goPool) adjustWorkers() {
 		select {
 		case <-ticker.C:
 			p.cond.L.Lock()
-			if len(p.taskQueue) > len(p.workerStack)*3/4 && len(p.workerStack) < p.maxWorkers {
+			if len(p.taskQueue) > len(p.workers)*3/4 && len(p.workers) < p.maxWorkers {
 				// Double the number of workers until it reaches the maximum
-				newWorkers := min(len(p.workerStack)*2, p.maxWorkers) - len(p.workerStack)
+				newWorkers := min(len(p.workers)*2, p.maxWorkers) - len(p.workers)
 				for i := 0; i < newWorkers; i++ {
 					worker := newWorker()
 					p.workers = append(p.workers, worker)
 					p.workerStack = append(p.workerStack, len(p.workers)-1)
 					worker.start(p, len(p.workers)-1)
 				}
-			} else if len(p.taskQueue) == 0 && len(p.workerStack) > p.minWorkers {
+			} else if len(p.taskQueue) == 0 && len(p.workers) > p.minWorkers {
 				// Halve the number of workers until it reaches the minimum
-				removeWorkers := max((len(p.workerStack)-p.minWorkers)/2, p.minWorkers)
+				removeWorkers := max((len(p.workers)-p.minWorkers)/2, p.minWorkers)
 				p.workers = p.workers[:len(p.workers)-removeWorkers]
 				p.workerStack = p.workerStack[:len(p.workerStack)-removeWorkers]
 			}
