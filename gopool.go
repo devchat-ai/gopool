@@ -8,9 +8,16 @@ import (
 
 // GoPool represents a pool of workers.
 type GoPool interface {
+	// AddTask adds a task to the pool.
 	AddTask(t task)
+	// Wait waits for all tasks to be dispatched and completed.
 	Wait()
+	// Release releases the pool and all its workers.
 	Release()
+	// GetRunning returns the number of running workers.
+	Running() int
+	// GetWorkerCount returns the number of workers.
+	GetWorkerCount() int
 }
 
 // task represents a function that will be executed by a worker.
@@ -49,9 +56,10 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 	pool := &goPool{
 		maxWorkers: maxWorkers,
 		// Set minWorkers to maxWorkers by default
-		minWorkers:     maxWorkers,
-		workers:        make([]*worker, maxWorkers),
-		workerStack:    make([]int, maxWorkers),
+		minWorkers: maxWorkers,
+		// workers and workerStack should be initialized after WithMinWorkers() is called
+		workers:        nil,
+		workerStack:    nil,
 		taskQueue:      make(chan task, 1e6),
 		retryCount:     0,
 		lock:           new(sync.Mutex),
@@ -64,6 +72,10 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 	for _, opt := range opts {
 		opt(pool)
 	}
+
+	pool.workers = make([]*worker, pool.minWorkers)
+	pool.workerStack = make([]int, pool.minWorkers)
+
 	if pool.cond == nil {
 		pool.cond = sync.NewCond(pool.lock)
 	}
@@ -186,4 +198,18 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// Running returns the number of workers that are currently working.
+func (p *goPool) Running() int {
+    p.lock.Lock()
+    defer p.lock.Unlock()
+    return len(p.workers) - len(p.workerStack)
+}
+
+// GetWorkerCount returns the number of workers in the pool.
+func (p *goPool) GetWorkerCount() int {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	return len(p.workers)
 }
