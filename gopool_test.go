@@ -1,185 +1,132 @@
-package gopool
+package gopool_test
 
 import (
 	"errors"
 	"sync"
 	"sync/atomic"
-	"testing"
 	"time"
 
 	"github.com/daniel-hutao/spinlock"
+	"github.com/devchat-ai/gopool"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestGoPoolWithMutex(t *testing.T) {
-	pool := NewGoPool(100, WithLock(new(sync.Mutex)))
-	defer pool.Release()
-	for i := 0; i < 1000; i++ {
-		pool.AddTask(func() (interface{}, error) {
-			time.Sleep(10 * time.Millisecond)
-			return nil, nil
+var _ = Describe("Gopool", func() {
+	Describe("With Mutex", func() {
+		It("should work correctly", func() {
+			pool := gopool.NewGoPool(100, gopool.WithLock(new(sync.Mutex)))
+			defer pool.Release()
+			for i := 0; i < 1000; i++ {
+				pool.AddTask(func() (interface{}, error) {
+					time.Sleep(10 * time.Millisecond)
+					return nil, nil
+				})
+			}
+			pool.Wait()
 		})
-	}
-	pool.Wait()
-}
-
-func TestGoPoolWithSpinLock(t *testing.T) {
-	pool := NewGoPool(100, WithLock(new(spinlock.SpinLock)))
-	defer pool.Release()
-	for i := 0; i < 1000; i++ {
-		pool.AddTask(func() (interface{}, error) {
-			time.Sleep(10 * time.Millisecond)
-			return nil, nil
-		})
-	}
-	pool.Wait()
-}
-
-func BenchmarkGoPoolWithMutex(b *testing.B) {
-	var wg sync.WaitGroup
-	var taskNum = int(1e6)
-	pool := NewGoPool(1e4, WithLock(new(sync.Mutex)))
-	defer pool.Release()
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		wg.Add(taskNum)
-		for num := 0; num < taskNum; num++ {
-			pool.AddTask(func() (interface{}, error) {
-				time.Sleep(10 * time.Millisecond)
-				wg.Done()
-				return nil, nil
-			})
-		}
-		wg.Wait()
-	}
-	b.StopTimer()
-}
-
-func BenchmarkGoPoolWithSpinLock(b *testing.B) {
-	var wg sync.WaitGroup
-	var taskNum = int(1e6)
-	pool := NewGoPool(1e4, WithLock(new(spinlock.SpinLock)))
-	defer pool.Release()
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		wg.Add(taskNum)
-		for num := 0; num < taskNum; num++ {
-			pool.AddTask(func() (interface{}, error) {
-				time.Sleep(10 * time.Millisecond)
-				wg.Done()
-				return nil, nil
-			})
-		}
-		wg.Wait()
-	}
-	b.StopTimer()
-}
-
-func BenchmarkGoroutines(b *testing.B) {
-	var wg sync.WaitGroup
-	var taskNum = int(1e6)
-
-	for i := 0; i < b.N; i++ {
-		wg.Add(taskNum)
-		for num := 0; num < taskNum; num++ {
-			go func() (interface{}, error) {
-				time.Sleep(10 * time.Millisecond)
-				wg.Done()
-				return nil, nil
-			}()
-		}
-		wg.Wait()
-	}
-}
-
-func TestGoPoolWithError(t *testing.T) {
-	var errTaskError = errors.New("task error")
-	pool := NewGoPool(100, WithErrorCallback(func(err error) {
-		if err != errTaskError {
-			t.Errorf("Expected error %v, but got %v", errTaskError, err)
-		}
-	}))
-	defer pool.Release()
-
-	for i := 0; i < 1000; i++ {
-		pool.AddTask(func() (interface{}, error) {
-			return nil, errTaskError
-		})
-	}
-	pool.Wait()
-}
-
-func TestGoPoolWithResult(t *testing.T) {
-	var expectedResult = "task result"
-	pool := NewGoPool(100, WithResultCallback(func(result interface{}) {
-		if result != expectedResult {
-			t.Errorf("Expected result %v, but got %v", expectedResult, result)
-		}
-	}))
-	defer pool.Release()
-
-	for i := 0; i < 1000; i++ {
-		pool.AddTask(func() (interface{}, error) {
-			return expectedResult, nil
-		})
-	}
-	pool.Wait()
-}
-
-func TestGoPoolWithRetry(t *testing.T) {
-	var retryCount = int32(3)
-	var taskError = errors.New("task error")
-	var taskRunCount int32 = 0
-
-	pool := NewGoPool(100, WithRetryCount(int(retryCount)))
-	defer pool.Release()
-
-	pool.AddTask(func() (interface{}, error) {
-		atomic.AddInt32(&taskRunCount, 1)
-		if taskRunCount <= retryCount {
-			return nil, taskError
-		}
-		return nil, nil
 	})
 
-	pool.Wait()
-
-	if atomic.LoadInt32(&taskRunCount) != retryCount+1 {
-		t.Errorf("Expected task to run %v times, but it ran %v times", retryCount+1, taskRunCount)
-	}
-}
-
-func TestGoPoolWithTimeout(t *testing.T) {
-	var taskRun int32
-
-	pool := NewGoPool(100, WithTimeout(100*time.Millisecond), WithErrorCallback(func(err error) {
-		if err.Error() != "task timed out" {
-			t.Errorf("Expected error 'task timed out', but got %v", err)
-		}
-		atomic.StoreInt32(&taskRun, 1)
-	}))
-	defer pool.Release()
-
-	pool.AddTask(func() (interface{}, error) {
-		time.Sleep(200 * time.Millisecond)
-		return nil, nil
+	Describe("With SpinLock", func() {
+		It("should work correctly", func() {
+			pool := gopool.NewGoPool(100, gopool.WithLock(new(spinlock.SpinLock)))
+			defer pool.Release()
+			for i := 0; i < 1000; i++ {
+				pool.AddTask(func() (interface{}, error) {
+					time.Sleep(10 * time.Millisecond)
+					return nil, nil
+				})
+			}
+			pool.Wait()
+		})
 	})
 
-	pool.Wait()
+	Describe("With Error", func() {
+		It("should work correctly", func() {
+			var errTaskError = errors.New("task error")
+			pool := gopool.NewGoPool(100, gopool.WithErrorCallback(func(err error) {
+				Expect(err).To(Equal(errTaskError))
+			}))
+			defer pool.Release()
 
-	if atomic.LoadInt32(&taskRun) == 0 {
-		t.Errorf("Expected task to run and timeout, but it did not run")
-	}
-}
+			for i := 0; i < 1000; i++ {
+				pool.AddTask(func() (interface{}, error) {
+					return nil, errTaskError
+				})
+			}
+			pool.Wait()
+		})
+	})
 
-func TestGoPoolWithMinWorkers(t *testing.T) {
-	var minWorkers = 50
+	Describe("With Result", func() {
+		It("should work correctly", func() {
+			var expectedResult = "task result"
+			pool := gopool.NewGoPool(100, gopool.WithResultCallback(func(result interface{}) {
+				Expect(result).To(Equal(expectedResult))
+			}))
+			defer pool.Release()
 
-	pool := NewGoPool(100, WithMinWorkers(minWorkers))
-	defer pool.Release()
+			for i := 0; i < 1000; i++ {
+				pool.AddTask(func() (interface{}, error) {
+					return expectedResult, nil
+				})
+			}
+			pool.Wait()
+		})
+	})
 
-	if pool.GetWorkerCount() != minWorkers {
-		t.Errorf("Expected worker count to be %v, but got %v", minWorkers, pool.GetWorkerCount())
-	}
-}
+	Describe("With Retry", func() {
+		It("should work correctly", func() {
+			var retryCount = int32(3)
+			var taskError = errors.New("task error")
+			var taskRunCount int32 = 0
+
+			pool := gopool.NewGoPool(100, gopool.WithRetryCount(int(retryCount)))
+			defer pool.Release()
+
+			pool.AddTask(func() (interface{}, error) {
+				atomic.AddInt32(&taskRunCount, 1)
+				if taskRunCount <= retryCount {
+					return nil, taskError
+				}
+				return nil, nil
+			})
+
+			pool.Wait()
+
+			Expect(atomic.LoadInt32(&taskRunCount)).To(Equal(retryCount + 1))
+		})
+	})
+
+	Describe("With Timeout", func() {
+		It("should work correctly", func() {
+			var taskRun int32
+
+			pool := gopool.NewGoPool(100, gopool.WithTimeout(100*time.Millisecond), gopool.WithErrorCallback(func(err error) {
+				Expect(err.Error()).To(Equal("task timed out"))
+				atomic.StoreInt32(&taskRun, 1)
+			}))
+			defer pool.Release()
+
+			pool.AddTask(func() (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return nil, nil
+			})
+
+			pool.Wait()
+
+			Expect(atomic.LoadInt32(&taskRun)).To(Equal(int32(1)))
+		})
+	})
+
+	Describe("With MinWorkers", func() {
+		It("should work correctly", func() {
+			var minWorkers = 50
+
+			pool := gopool.NewGoPool(100, gopool.WithMinWorkers(minWorkers))
+			defer pool.Release()
+
+			Expect(pool.GetWorkerCount()).To(Equal(minWorkers))
+		})
+	})
+})
