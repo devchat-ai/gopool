@@ -202,9 +202,9 @@ func max(a, b int) int {
 
 // Running returns the number of workers that are currently working.
 func (p *goPool) Running() int {
-    p.lock.Lock()
-    defer p.lock.Unlock()
-    return len(p.workers) - len(p.workerStack)
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	return len(p.workers) - len(p.workerStack)
 }
 
 // GetWorkerCount returns the number of workers in the pool.
