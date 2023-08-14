@@ -3,9 +3,11 @@ module github.com/devchat-ai/gopool
 go 1.20
 
 require (
+	github.com/alitto/pond v1.8.3
 	github.com/daniel-hutao/spinlock v0.1.0
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
+	github.com/panjf2000/ants/v2 v2.8.1
 )
 
 require (
