@@ -17,11 +17,67 @@
 
 欢迎来到 GoPool，这是**一个95%的代码由GPT生成的项目**。你可以在[pro.devchat.ai](https://pro.devchat.ai)找到相应的 Commit 和 Prompt 列表。
 
-GoPool 是一个用 Golang 实现的高性能、功能丰富、易于使用的工作池库。它会管理和回收一组 goroutine 来并发完成任务，从而提高你的应用程序的效率和性能。
+GoPool 是一个用 Golang 实现的**高性能**、**功能丰富**、**简单易用**的工作池库。它会管理和回收一组 goroutine 来并发完成任务，从而提高你的应用程序的效率和性能。
 
 <div align="center">
 <img src="./logo/gopool.png" width="750">
 </div>
+
+## 性能测试
+
+这个表格展示了三个 Go 库 GoPool、[ants](https://github.com/panjf2000/ants) 和 [pond](https://github.com/alitto/pond)的性能测试结果。表格包括每个库处理 100 万个任务所需的时间和内存消耗（以 MB 为单位）。
+
+|     项目    | 处理一百万任务耗时 (s) | 内存消耗 (MB) |
+|----------------|:----------------------------:|:-----------------------:|
+| GoPool         | 1.13                         | 1.23                    |
+| [ants](https://github.com/panjf2000/ants) | 1.43 | 9.49                 |
+| [pond](https://github.com/alitto/pond)    | 3.51 | 1.88                 |
+
+你可以通过运行下列命令在你的机器上测试 GoPool、ants 和 pond 的性能：
+
+```bash
+$ go test -benchmem -run=^$ -bench ^BenchmarkGoPoolWithMutex$ github.com/devchat-ai/gopool
+$ go test -benchmem -run=^$ -bench ^BenchmarkAnts$ github.com/devchat-ai/gopool
+$ go test -benchmem -run=^$ -bench ^BenchmarkPond$ github.com/devchat-ai/gopool
+```
+
+在我的电脑上，性能测试的结果如下：
+
+- GoPool
+
+```bash
+$ go test -benchmem -run=^$ -bench ^BenchmarkGoPoolWithMutex$ github.com/devchat-ai/gopool
+goos: darwin
+goarch: arm64
+pkg: github.com/devchat-ai/gopool
+BenchmarkGoPoolWithMutex-10    	       1	1131753125 ns/op	1966192 B/op	 13609 allocs/op
+PASS
+ok  	github.com/devchat-ai/gopool	1.5085s
+```
+
+- ants
+
+```bash
+$ go test -benchmem -run=^$ -bench ^BenchmarkAnts$ github.com/devchat-ai/gopool
+goos: darwin
+goarch: arm64
+pkg: github.com/devchat-ai/gopool
+BenchmarkAnts-10    	       1	1425282750 ns/op	 9952656 B/op	   74068 allocs/op
+PASS
+ok  	github.com/devchat-ai/gopool	1.730s
+```
+
+- pond
+
+```bash
+$ go test -benchmem -run=^$ -bench ^BenchmarkPond$ github.com/devchat-ai/gopool
+goos: darwin
+goarch: arm64
+pkg: github.com/devchat-ai/gopool
+BenchmarkPond-10    	       1	3512323792 ns/op	 1288984 B/op	   11106 allocs/op
+PASS
+ok  	github.com/devchat-ai/gopool	3.946s
+```
 
 ## 特性
 
@@ -264,54 +320,3 @@ func main() {
 ```
 
 在这个示例中，如果任务失败，它将重试最多3次。
-
-## 性能测试
-
-我们进行了几个性能测试来评估 GoPool 的效率和性能。以下是结果：
-
-- **TestGoPoolWithMutex**：
-
-```bash
-$ go test -benchmem -run=^$ -bench ^BenchmarkGoPoolWithMutex$ github.com/devchat-ai/gopool
-
-goos: darwin
-goarch: arm64
-pkg: github.com/devchat-ai/gopool
-=== RUN   BenchmarkGoPoolWithMutex
-BenchmarkGoPoolWithMutex
-BenchmarkGoPoolWithMutex-10            2         803105167 ns/op        17416408 B/op    1017209 allocs/op
-PASS
-ok      github.com/devchat-ai/gopool    2.586s
-```
-
-- **TestGoPoolWithSpinLock**：
-
-```bash
-$ go test -benchmem -run=^$ -bench ^BenchmarkGoPoolWithSpinLock$ github.com/devchat-ai/gopool
-
-goos: darwin
-goarch: arm64
-pkg: github.com/devchat-ai/gopool
-=== RUN   BenchmarkGoPoolWithSpinLock
-BenchmarkGoPoolWithSpinLock
-BenchmarkGoPoolWithSpinLock-10                 2         662952562 ns/op        17327176 B/op    1016087 allocs/op
-PASS
-ok      github.com/devchat-ai/gopool    2.322s
-```
-
-- **BenchmarkGoroutines**： 
-
-```bash
-$ go test -benchmem -run=^$ -bench ^BenchmarkGoroutines$ github.com/devchat-ai/gopool
-
-goos: darwin
-goarch: arm64
-pkg: github.com/devchat-ai/gopool
-=== RUN   BenchmarkGoroutines
-BenchmarkGoroutines
-BenchmarkGoroutines-10                 3         371622847 ns/op        96642458 B/op    2005219 allocs/op
-PASS
-ok      github.com/devchat-ai/gopool    2.410s
-```
-
-请注意，实际性能可能会根据具体的使用情况和系统环境而变化。
