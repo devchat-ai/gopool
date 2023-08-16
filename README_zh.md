@@ -19,10 +19,6 @@
 
 GoPool 是一个用 Golang 实现的**高性能**、**功能丰富**、**简单易用**的工作池库。它会管理和回收一组 goroutine 来并发完成任务，从而提高你的应用程序的效率和性能。
 
-<div align="center">
-<img src="./logo/gopool.png" width="750">
-</div>
-
 ## 性能测试
 
 这个表格展示了三个 Go 库 GoPool、[ants](https://github.com/panjf2000/ants) 和 [pond](https://github.com/alitto/pond)的性能测试结果。表格包括每个库处理 100 万个任务所需的时间和内存消耗（以 MB 为单位）。
@@ -80,6 +76,10 @@ ok  	github.com/devchat-ai/gopool	3.946s
 ```
 
 ## 特性
+
+<div align="center">
+<img src="./logo/gopool.png" width="750">
+</div>
 
 - [x] **任务队列**：GoPool 使用一个线程安全的任务队列来存储等待处理的任务。多个工作器可以同时从这个队列中获取任务。
 
