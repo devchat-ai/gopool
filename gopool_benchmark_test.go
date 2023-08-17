@@ -15,44 +15,40 @@ const (
 	TaskNum  = 1e6
 )
 
-func BenchmarkGoPoolWithMutex(b *testing.B) {
-	var wg sync.WaitGroup
-	var taskNum = int(TaskNum)
-	pool := NewGoPool(PoolSize, WithLock(new(sync.Mutex)))
+func BenchmarkGoPool(b *testing.B) {
+	pool := NewGoPool(PoolSize)
 	defer pool.Release()
+
+	taskFunc := func() (interface{}, error) {
+		time.Sleep(10 * time.Millisecond)
+		return nil, nil
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		wg.Add(taskNum)
-		for num := 0; num < taskNum; num++ {
-			pool.AddTask(func() (interface{}, error) {
-				time.Sleep(10 * time.Millisecond)
-				wg.Done()
-				return nil, nil
-			})
+		for num := 0; num < TaskNum; num++ {
+			pool.AddTask(taskFunc)
 		}
-		wg.Wait()
+		pool.Wait()
 	}
 	b.StopTimer()
 }
 
 func BenchmarkGoPoolWithSpinLock(b *testing.B) {
-	var wg sync.WaitGroup
-	var taskNum = int(TaskNum)
 	pool := NewGoPool(PoolSize, WithLock(new(spinlock.SpinLock)))
 	defer pool.Release()
 
+	taskFunc := func() (interface{}, error) {
+		time.Sleep(10 * time.Millisecond)
+		return nil, nil
+	}
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		wg.Add(taskNum)
-		for num := 0; num < taskNum; num++ {
-			pool.AddTask(func() (interface{}, error) {
-				time.Sleep(10 * time.Millisecond)
-				wg.Done()
-				return nil, nil
-			})
+		for num := 0; num < TaskNum; num++ {
+			pool.AddTask(taskFunc)
 		}
-		wg.Wait()
+		pool.Wait()
 	}
 	b.StopTimer()
 }
@@ -61,6 +57,7 @@ func BenchmarkGoroutines(b *testing.B) {
 	var wg sync.WaitGroup
 	var taskNum = int(TaskNum)
 
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		wg.Add(taskNum)
 		for num := 0; num < taskNum; num++ {
@@ -88,6 +85,7 @@ func BenchmarkPond(b *testing.B) {
 		}
 		pool.StopAndWait()
 	}
+	b.StopTimer()
 }
 
 func BenchmarkAnts(b *testing.B) {
@@ -108,4 +106,5 @@ func BenchmarkAnts(b *testing.B) {
 		}
 		wg.Wait()
 	}
+	b.StopTimer()
 }

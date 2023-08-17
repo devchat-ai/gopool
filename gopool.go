@@ -113,7 +113,7 @@ func (p *goPool) Wait() {
 			break
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
