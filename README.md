@@ -25,9 +25,9 @@ This table shows the performance testing results for three Go libraries: GoPool,
 
 |     Project    | Time to Process 1M Tasks (s) | Memory Consumption (MB) |
 |----------------|:----------------------------:|:-----------------------:|
-| GoPool         | 1.13                         | 1.23                    |
-| [ants](https://github.com/panjf2000/ants) | 1.43 | 9.49                 |
-| [pond](https://github.com/alitto/pond)    | 3.51 | 1.88                 |
+| GoPool         | 1.13                         | 2.11                    |
+| [ants](https://github.com/panjf2000/ants) | 1.43 | 8.94                 |
+| [pond](https://github.com/alitto/pond)    | 3.32 | 2.20                 |
 
 You can run the following commands to test the performance of GoPool, ants, and pond on your machine:
 
@@ -42,37 +42,46 @@ The results of the performance testing on my machine are as follows:
 - GoPool
 
 ```bash
-$ go test -benchmem -run=^$ -bench ^BenchmarkGoPoolWithMutex$ github.com/devchat-ai/gopool
+go test -benchmem -run=^$ -bench ^BenchmarkGoPool$ github.com/devchat-ai/gopool
+
 goos: darwin
 goarch: arm64
 pkg: github.com/devchat-ai/gopool
-BenchmarkGoPoolWithMutex-10    	       1	1131753125 ns/op	1966192 B/op	 13609 allocs/op
+=== RUN   BenchmarkGoPool
+BenchmarkGoPool
+BenchmarkGoPool-10             1        1131749792 ns/op         2212096 B/op      17447 allocs/op
 PASS
-ok  	github.com/devchat-ai/gopool	1.5085s
+ok      github.com/devchat-ai/gopool    1.342s
 ```
 
 - ants
 
 ```bash
-$ go test -benchmem -run=^$ -bench ^BenchmarkAnts$ github.com/devchat-ai/gopool
+go test -benchmem -run=^$ -bench ^BenchmarkAnts$ github.com/devchat-ai/gopool
+
 goos: darwin
 goarch: arm64
 pkg: github.com/devchat-ai/gopool
-BenchmarkAnts-10    	       1	1425282750 ns/op	 9952656 B/op	   74068 allocs/op
+=== RUN   BenchmarkAnts
+BenchmarkAnts
+BenchmarkAnts-10               1        1429439750 ns/op         9369552 B/op      70259 allocs/op
 PASS
-ok  	github.com/devchat-ai/gopool	1.730s
+ok      github.com/devchat-ai/gopool    1.681s
 ```
 
 - pond
 
 ```bash
-$ go test -benchmem -run=^$ -bench ^BenchmarkPond$ github.com/devchat-ai/gopool
+go test -benchmem -run=^$ -bench ^BenchmarkPond$ github.com/devchat-ai/gopool
+
 goos: darwin
 goarch: arm64
 pkg: github.com/devchat-ai/gopool
-BenchmarkPond-10    	       1	3512323792 ns/op	 1288984 B/op	   11106 allocs/op
+=== RUN   BenchmarkPond
+BenchmarkPond
+BenchmarkPond-10               1        3322063917 ns/op         2310840 B/op      21325 allocs/op
 PASS
-ok  	github.com/devchat-ai/gopool	3.946s
+ok      github.com/devchat-ai/gopool    3.541s
 ```
 
 ## Features
