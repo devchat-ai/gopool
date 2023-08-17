@@ -129,4 +129,14 @@ var _ = Describe("Gopool", func() {
 			Expect(pool.GetWorkerCount()).To(Equal(minWorkers))
 		})
 	})
+
+	Describe("With TaskQueueSize", func() {
+		It("should work correctly", func() {
+			size := 5000
+			pool := gopool.NewGoPool(100, gopool.WithTaskQueueSize(size))
+			defer pool.Release()
+
+			Expect(pool.GetTaskQueueSize()).To(Equal(size))
+		})
+	})
 })

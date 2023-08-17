@@ -81,7 +81,7 @@ ok  	github.com/devchat-ai/gopool	3.946s
 <img src="./logo/gopool.png" width="750">
 </div>
 
-- [x] **任务队列**：GoPool 使用一个线程安全的任务队列来存储等待处理的任务。多个工作器可以同时从这个队列中获取任务。
+- [x] **任务队列**：GoPool 使用一个线程安全的任务队列来存储等待处理的任务。多个工作器可以同时从这个队列中获取任务。任务队列的大小可配置。
 
 - [x] **并发控制**：GoPool 可以控制并发任务的数量，防止系统过载。
 
@@ -151,6 +151,35 @@ import (
 
 func main() {
     pool := gopool.NewGoPool(100, gopool.WithLock(new(spinlock.SpinLock)))
+    defer pool.Release()
+
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() (interface{}, error){
+            time.Sleep(10 * time.Millisecond)
+            return nil, nil
+        })
+    }
+    pool.Wait()
+}
+```
+
+## 配置任务队列大小
+
+GoPool 使用一个线程安全的任务队列来存储等待处理的任务。多个工作器可以同时从这个队列中获取任务。任务队列的大小可配置。可以通过在创建池时设置 `WithQueueSize` 选项来配置任务队列的大小。
+
+这是一个如何配置 GoPool 任务队列大小的示例：
+
+```go
+package main
+
+import (
+    "time"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithTaskQueueSize(5000))
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {

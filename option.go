@@ -50,3 +50,10 @@ func WithRetryCount(retryCount int) Option {
 		p.retryCount = retryCount
 	}
 }
+
+// WithTaskQueueSize sets the size of the task queue for the pool.
+func WithTaskQueueSize(size int) Option {
+	return func(p *goPool) {
+		p.taskQueueSize = size
+	}
+}

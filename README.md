@@ -81,7 +81,7 @@ ok  	github.com/devchat-ai/gopool	3.946s
 <img src="./logo/gopool.png" width="750">
 </div>
 
-- [x] **Task Queue**: GoPool uses a thread-safe task queue to store tasks waiting to be processed. Multiple workers can simultaneously fetch tasks from this queue.
+- [x] **Task Queue**: GoPool uses a thread-safe task queue to store tasks waiting to be processed. Multiple workers can simultaneously fetch tasks from this queue. The size of the task queue can be configured.
 
 - [x] **Concurrency Control**: GoPool can control the number of concurrent tasks to prevent system overload.
 
@@ -151,6 +151,35 @@ import (
 
 func main() {
     pool := gopool.NewGoPool(100, gopool.WithLock(new(spinlock.SpinLock)))
+    defer pool.Release()
+
+    for i := 0; i < 1000; i++ {
+        pool.AddTask(func() (interface{}, error){
+            time.Sleep(10 * time.Millisecond)
+            return nil, nil
+        })
+    }
+    pool.Wait()
+}
+```
+
+## Configurable Task Queue Size
+
+GoPool uses a thread-safe task queue to store tasks waiting to be processed. Multiple workers can simultaneously fetch tasks from this queue. The size of the task queue can be configured when creating the pool using the `WithTaskQueueSize` option.
+
+Here is an example of how to use GoPool with a configurable task queue size:
+
+```go
+package main
+
+import (
+    "time"
+
+    "github.com/devchat-ai/gopool"
+)
+
+func main() {
+    pool := gopool.NewGoPool(100, gopool.WithTaskQueueSize(5000))
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {

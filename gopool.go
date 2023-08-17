@@ -18,6 +18,8 @@ type GoPool interface {
 	Running() int
 	// GetWorkerCount returns the number of workers.
 	GetWorkerCount() int
+	// GetTaskQueueSize returns the size of the task queue.
+	GetTaskQueueSize() int
 }
 
 // task represents a function that will be executed by a worker.
@@ -33,6 +35,8 @@ type goPool struct {
 	minWorkers int
 	// tasks are added to this channel first, then dispatched to workers. Default buffer size is 1 million.
 	taskQueue chan task
+	// Set by WithTaskQueueSize(), used to set the size of the task queue. Default is 1e6.
+	taskQueueSize int
 	// Set by WithRetryCount(), used to retry a task when it fails. Default is 0.
 	retryCount int
 	lock       sync.Locker
@@ -60,7 +64,8 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 		// workers and workerStack should be initialized after WithMinWorkers() is called
 		workers:        nil,
 		workerStack:    nil,
-		taskQueue:      make(chan task, 1e6),
+		taskQueue:      nil,
+		taskQueueSize:  1e6,
 		retryCount:     0,
 		lock:           new(sync.Mutex),
 		timeout:        0,
@@ -73,6 +78,7 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 		opt(pool)
 	}
 
+	pool.taskQueue = make(chan task, pool.taskQueueSize)
 	pool.workers = make([]*worker, pool.minWorkers)
 	pool.workerStack = make([]int, pool.minWorkers)
 
@@ -212,4 +218,11 @@ func (p *goPool) GetWorkerCount() int {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	return len(p.workers)
+}
+
+// GetTaskQueueSize returns the size of the task queue.
+func (p *goPool) GetTaskQueueSize() int {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	return p.taskQueueSize
 }
