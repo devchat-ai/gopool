@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/daniel-hutao/spinlock"
 	"github.com/alitto/pond"
+	"github.com/daniel-hutao/spinlock"
 	"github.com/panjf2000/ants/v2"
 )
 
