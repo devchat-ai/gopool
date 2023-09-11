@@ -168,7 +168,7 @@ func (p *goPool) adjustWorkers() {
 				}
 			} else if len(p.taskQueue) == 0 && len(p.workers) > p.minWorkers {
 				// Halve the number of workers until it reaches the minimum
-				removeWorkers := max((len(p.workers)-p.minWorkers)/2, p.minWorkers)
+				removeWorkers := (len(p.workers) - p.minWorkers + 1) / 2
 				p.workers = p.workers[:len(p.workers)-removeWorkers]
 				p.workerStack = p.workerStack[:len(p.workerStack)-removeWorkers]
 			}
@@ -194,13 +194,6 @@ func (p *goPool) dispatch() {
 
 func min(a, b int) int {
 	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
 		return a
 	}
 	return b

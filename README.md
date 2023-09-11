@@ -201,6 +201,7 @@ func main() {
 }
 ```
 
+
 ## Dynamic Worker Adjustment
 
 GoPool supports dynamic worker adjustment. This means that the number of workers in the pool can increase or decrease based on the number of tasks in the queue. This feature can be enabled by setting the MinWorkers option when creating the pool.
@@ -230,7 +231,7 @@ func main() {
 }
 ```
 
-In this example, the pool starts with 50 workers. If the number of tasks in the queue exceeds (MaxWorkers - MinWorkers) / 2 + MinWorkers, the pool will add more workers. If the number of tasks in the queue is less than MinWorkers, the pool will remove some workers.
+In this example, the pool starts with 50 workers. If the number of tasks in the queue exceeds 3/4 of the current number of workers and the current number of workers is less than MaxWorkers, the pool will double the number of workers until it reaches MaxWorkers. If the number of tasks in the queue is zero and the current number of workers is more than MinWorkers, the pool will halve the number of workers until it reaches MinWorkers.
 
 ## Task Timeout Handling
 
