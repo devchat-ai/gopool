@@ -119,6 +119,38 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
+	Describe("With Timeout and Result Hook", func() {
+		It("should work correctly", func() {
+			var taskRun int32
+
+			pool := gopool.NewGoPool(100, gopool.WithTimeout(100*time.Millisecond), gopool.WithErrorCallback(func(err error) {
+				if err != nil {
+					Expect(err.Error()).To(Equal("task timed out"))
+					atomic.StoreInt32(&taskRun, 1)
+				}
+			}), gopool.WithResultCallback(func(i interface{}) {
+				println("result callback",i)
+				if v, ok := i.(int); ok {
+					Expect(v).To(Equal(1))
+				}
+			}))
+			defer pool.Release()
+
+			pool.AddTask(func() (interface{}, error) {
+				time.Sleep(200 * time.Millisecond)
+				return nil, nil
+			})
+
+			pool.AddTask(func() (interface{}, error) {
+				return 1, nil
+			})
+
+			pool.Wait()
+
+			Expect(atomic.LoadInt32(&taskRun)).To(Equal(int32(1)))
+		})
+	})
+
 	Describe("With MinWorkers", func() {
 		It("should work correctly", func() {
 			var minWorkers = 50

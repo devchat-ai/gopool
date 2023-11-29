@@ -62,7 +62,8 @@ func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result interface{
 		res, err := t()
 		select {
 		case resultChan <- res:
-		case errChan <- err:
+			errChan <- err
+
 		case <-ctx.Done():
 			// The context was cancelled, stop the task
 			return
